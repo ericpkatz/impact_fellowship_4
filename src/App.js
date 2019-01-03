@@ -1,8 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import faker from 'faker';
-import { foo, generateCompany } from './db';
-import Companies from './Companies';
+import Films from './Films';
 
 const Title = ({ title })=> <h1>{ title }</h1>;
 
@@ -11,33 +9,33 @@ export default class App extends React.Component{
   constructor(props){
     super(props);
     this.state = {
-      companies : [],
+      films : [],
     }; 
-    //this.addRandomUser = this.addRandomUser.bind(this);
-  }
-  deleteCompany = (company)=> {
-    const companies = this.state.companies.filter(_company => {
-      return _company.id !== company.id
-    });
-    this.setState({ companies });
   }
   componentDidMount(){
-    const companies = foo(1);
-    this.setState({ companies });
-  }
-  createCompany = ()=> {
-    const companies = [generateCompany(), ...this.state.companies ]; 
-    this.setState({ companies });
+    const data = localStorage.getItem('films');
+    if(data){
+      this.setState({ films: JSON.parse(data)});
+      return;
+    }
+    window.fetch('https://swapi.co/api/films')
+      .then( response => response.json())
+      .then( data => {
+        const films = data.results;
+        localStorage.setItem('films', JSON.stringify(films));
+        this.setState({ films })
+      });
+
   }
   render(){
     const { title } = this.props;
-    const { companies } = this.state;
-    const { createCompany, deleteCompany } = this; 
+    const { films } = this.state;
     return ( 
       <div>
         <Title title={ title }/>
-        <button style={{ marginBottom: '10px'}} className='btn btn-primary' onClick={ createCompany }>Create Company</button>
-        <Companies companies={ companies } deleteCompany={ deleteCompany }/>
+        {
+          !films.length ? <span>Loading</span> : <Films films={ films } />
+        }
       </div>
     );
   }   
